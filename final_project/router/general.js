@@ -22,7 +22,7 @@ public_users.post("/register", (req,res) => {
     if (username && password) {
         if (!doesExist(username)) { 
         users.push({"username":username,"password":password});
-        return res.status(200).json({message: "User successfully registred. Now you can login"});
+        return res.status(200).json({message: "User successfully registred. Now you can login "});
         } else {
         return res.status(404).json({message: "User already exists!"});    
         }
@@ -30,35 +30,63 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Unable to register user."});
 });
 
+//Creating a promise method. The promise will get resolved when timer times out after 6 seconds.
+let myPromise = new Promise((resolve,reject) => {
+    setTimeout(() => {
+      resolve("Promise resolved")
+    },6000)})
+
+//Call the promise and wait for it to be resolved and then print a message.
+myPromise.then((successMessage) => {
+    console.log("From Callback " + successMessage)
+})
+
+
+
 // Get the book list available in the shop
+const getAll = () => Promise.resolve(books);
 public_users.get('/',function (req, res) {
-    res.send(JSON.stringify(books,null,4));
+    getAll()
+    .then(result => res.status(200).send(result))
+    .catch(err => res.status(500).send(err));
 });
 
 // Get book details based on ISBN
+const getIsbn = (isbn) => Promise.resolve(books[isbn]);
 public_users.get('/isbn/:isbn',function (req, res) {
-    const isbn = req.params.isbn;
-    res.send(books[isbn]);
+    getIsbn(req.params.isbn)
+    .then(result => res.status(200).send(result))
+    .catch(err => res.status(500).send(err));
  });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-    const author = req.params.author;
+const getAuthor = (author) => {
     for (const [key, value] of Object.entries(books)) {
         if(value.author == author){
-            res.send(books[key]);
+            Promise.resolve(books[key]);
         }
     }
+    Promise.reject(new Error('fail'))
+}
+public_users.get('/author/:author',function (req, res) {
+    getAuthor(req.params.author)
+    .then(result => res.status(200).send(result))
+    .catch(err => res.status(500).send(err));
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-    const title = req.params.title;
+const getTitle = (title) => {
     for (const [key, value] of Object.entries(books)) {
         if(value.title == title){
-            res.send(books[key]);
+            Promise.resolve(books[key]);
         }
     }
+    Promise.reject(new Error('fail'))
+}
+public_users.get('/title/:title',function (req, res) {
+    getTitle(req.params.title)
+    .then(result => res.status(200).send(result))
+    .catch(err => res.status(500).send(err));
 });
 
 //  Get book review
